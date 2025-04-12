@@ -54,8 +54,8 @@ class EspNowController : private EspNowGeneric {
 
     // struct used to store user inputs
     typedef struct controller_message {
-        uint16_t x_value;
-        uint16_t y_value;
+        uint16_t left_pwm;
+        uint16_t right_pwm;
     } controller_message;
 
     // init esp_now protocol and register callback functions and peer mac address
@@ -66,11 +66,11 @@ class EspNowController : private EspNowGeneric {
 
     // send the data OTA via esp_now (data sent to peer address
     esp_err_t send() {
-        return esp_now_send(_peer_address, (uint8_t *)joystick_data, sizeof(joystick_data));
+        return esp_now_send(_peer_address, (uint8_t *)control_data, sizeof(control_data));
     }
 
     // public pointer to a controller_message struct
-    controller_message* joystick_data = &_controller_data;
+    controller_message* control_data = &_controller_data;
 
     private:
 

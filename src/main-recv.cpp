@@ -49,19 +49,19 @@ void data_sent_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {
 // callback function for esp_now data reception
 void data_receive_cb(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
     // store data into recv_message struct derived from EspNowRecv class 
-    static EspNowController::controller_message joystick_data = {0};
+    static EspNowController::controller_message control_data = {0};
 
-    memcpy(&joystick_data, data, sizeof(joystick_data));
+    memcpy(&control_data, data, sizeof(control_data));
     Serial.println("PACKET RECEIVED: ");
-    Serial.println(joystick_data.x_value);
-    Serial.println(joystick_data.y_value);
+    Serial.println(control_data.left_pwm);
+    Serial.println(control_data.right_pwm);
 
     return;
 }
 
 void setup(void) {
  
-    Serial.begin(9600);
+    Serial.begin(115200);
 
     // init the recv object with peer mac addr and callback functions
     recv.init(controller_address, data_sent_cb, data_receive_cb);
