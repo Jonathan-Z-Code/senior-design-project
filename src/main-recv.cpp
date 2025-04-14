@@ -23,11 +23,10 @@
     ----------------------------------------------------------------------------------------------------------------------------
     
 */
-
+#include <Arduino.h>
 #include "control_api.h"
 #include "esp_now_api.h"
 #include "gps_api.h"
-#include <Arduino.h>
 
 // user defined mac addresses
 const uint8_t controller_address[MAC_ADDR_LEN] = {0xA0, 0xA3, 0xB3, 0x96, 0x6E, 0x40};
