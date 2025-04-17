@@ -6,6 +6,14 @@
 #define OFFSET_PIN (33)
 #define JOYSTICK_DEADZONE (25)
 
+
+#define TRIM_MOTOR_PIN (25)
+#define TRIM_MOTOR_READ_PERIOD (50)
+#define TRIM_MOTOR_PWM_STEP_SIZE (5)
+
+// variable to store trim_pwm
+volatile int16_t trim_pwm = 0;
+
 // mac addr for senior design car: a0:a3:b3:96:78:28
 const uint8_t car_mac_addr[6] = {0xA0, 0xA3, 0xB3, 0x96, 0x78, 0x28};
 
@@ -34,6 +42,7 @@ void data_receive_cb(const uint8_t *mac_addr, const uint8_t *data, int data_len)
 void setup(void) {
     delay(3000); // unity overhead delay
     Serial.begin(115200);
+    pinMode(TRIM_MOTOR_PIN, INPUT);
     controller.init(car_mac_addr, data_sent_cb, data_receive_cb);
 }
 
@@ -42,16 +51,16 @@ void loop(void) {
     delay(250); // read ADC vals and print them out every 1 second 
 
     // variables to keep track of speed and PWM values
-    uint16_t l_val = 0;
-    uint16_t r_val = 0;
-    uint16_t speed_result = 0;
+    uint8_t l_val = 0;
+    uint8_t r_val = 0;
+    uint8_t speed_result = 0;
     float kp = 0.9f;
 
     // variables to keep track of raw ADC readings
     analogReadResolution(8);
-    uint16_t joystick_result  = analogRead(SPEED_PIN);
-    uint16_t linear_result = analogRead(OFFSET_PIN);
-    int16_t  offset_centered = 128 - linear_result; // center the offset around 0
+    uint8_t joystick_result  = analogRead(SPEED_PIN);
+    uint8_t linear_result = analogRead(OFFSET_PIN);
+    int8_t  offset_centered = 127 - linear_result; // center the offset around 0
     
     // check if the joystick is outside of the deadzone
     if(joystick_result > (JOYSTICK_DEADZONE + 128) || joystick_result < (-JOYSTICK_DEADZONE + 128)) {
@@ -63,7 +72,7 @@ void loop(void) {
 
     // Calculate whether the offset (centered at 0) is biased for left or right motor
     if(offset_centered < 0) { // right motor bias
-        uint16_t abs_offset = -1 * offset_centered;
+        uint8_t abs_offset = (uint8_t)(-1 * offset_centered);
         controller.control_data->left_pwm  = speed_result;
 
         // IMPORTANT NOTE:
@@ -79,8 +88,26 @@ void loop(void) {
         controller.control_data->right_pwm = speed_result;
     }
 
-    Serial.printf("ADC values: JOYSTICK: %d, LINEAR: %d \n", joystick_result, linear_result);
+    // read the TRIM_MOTOR_PIN and update trimmer motor accordingly
+    if(digitalRead(TRIM_MOTOR_PIN)) {
+        trim_pwm += TRIM_MOTOR_PWM_STEP_SIZE;
+    }
+    else {
+        trim_pwm -= TRIM_MOTOR_PWM_STEP_SIZE;
+    }
+
+    // bounds checking 
+    if(trim_pwm < 0)    trim_pwm = 0;
+    if(trim_pwm > 255)  trim_pwm = 255;
+    
+    // assign values to the control data struct
+    controller.control_data->trim_pwm = (uint8_t)trim_pwm;
+
+    // DEBUG: print out the trim_pwm variable to check
+    Serial.printf("Final TRIM_PWM: %d \n", controller.control_data->trim_pwm);
+    Serial.printf("ADC values: JOYSTICK: %u, LINEAR: %u \n", joystick_result, linear_result);
     Serial.printf("Final L/R PWM values: L: %d, R: %d \n", controller.control_data->left_pwm, controller.control_data->right_pwm);
+
 
     controller.send(); // send controller values to the ESPNOW receiver
 }

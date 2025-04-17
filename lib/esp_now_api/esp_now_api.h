@@ -29,7 +29,7 @@ class EspNowRecv: private EspNowGeneric {
 
     // send the data OTA via esp_now (data sent to peer address)
     esp_err_t send() {
-        return esp_now_send(_peer_address, (uint8_t *)debug_data, sizeof(debug_data));
+        return esp_now_send(_peer_address, (uint8_t *)debug_data, sizeof(recv_message));
     }
 
     // public pointer to a recv_message struct
@@ -52,10 +52,11 @@ class EspNowController : private EspNowGeneric {
     // REMINDER: If you inherit an abstract class, you have to reference the constructor 
     EspNowController() : EspNowGeneric() {}
 
-    // struct used to store user inputs
-    typedef struct controller_message {
-        uint16_t left_pwm;
-        uint16_t right_pwm;
+    // struct used to store user inputs (__attribute__((packed)) is used in order to properly send data without implicit padding)
+    typedef struct __attribute__((packed)) {
+        uint8_t left_pwm;
+        uint8_t right_pwm;
+        uint8_t trim_pwm;
     } controller_message;
 
     // init esp_now protocol and register callback functions and peer mac address
@@ -66,7 +67,7 @@ class EspNowController : private EspNowGeneric {
 
     // send the data OTA via esp_now (data sent to peer address
     esp_err_t send() {
-        return esp_now_send(_peer_address, (uint8_t *)control_data, sizeof(control_data));
+        return esp_now_send(_peer_address, (uint8_t *)control_data, sizeof(controller_message));
     }
 
     // public pointer to a controller_message struct
