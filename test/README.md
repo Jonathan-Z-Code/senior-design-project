@@ -1,4 +1,4 @@
-## Welcome to our unit testing platform! ##
+# Welcome to our unit testing platform! #
 
 Here is where the real magic happens! Unit testing allows us to quickly write up tests for every new piece of hardware that comes in.
 As you can see, there are individual unit tests for GPS (BE-880) and Motor Drivers (L298N). 
@@ -6,7 +6,7 @@ Furthermore, there are more complex unit tests for the reciever and the controll
 Ultimately, unit testing is at the heart of our senior design project. Quickly iterate and discover bugs before they bite us! 
 
 
-# what is unit testing? #
+## what is unit testing? ##
 
 This directory is intended for PlatformIO Test Runner and project tests.
 
