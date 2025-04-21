@@ -7,13 +7,13 @@
 // const uint8_t recv_address[MAC_ADDR_LEN] = {0xA0, 0xA3, 0xB3, 0x96, 0x6E, 0x40};
 const uint8_t controller_address[MAC_ADDR_LEN] = {0xA0, 0xA3, 0xB3, 0x96, 0x6E, 0xF8};
 
+// create an object from the EspNowRecv class
+EspNowRecv recv;
+
 // variables to keep track of target PWM values
 volatile DRAM_ATTR uint16_t target_left_pwm  = 0;
 volatile DRAM_ATTR uint16_t target_right_pwm = 0;
 volatile DRAM_ATTR uint16_t target_trim_pwm = 0;
-
-// create an object from the EspNowRecv class
-EspNowRecv recv;
 
 // callback function for esp_now transmitted data
 void IRAM_ATTR data_sent_cb(const uint8_t *mac_addr, esp_now_send_status_t status) {
