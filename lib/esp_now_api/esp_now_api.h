@@ -12,13 +12,14 @@ class EspNowRecv: private EspNowGeneric {
 
     EspNowRecv() : EspNowGeneric() {}
 
-    // struct to store motor values and specs
-    typedef struct recv_message {
-        int targetValue;
-        int rightMotorValue;
-        int leftMotorValue;
-        int deltaLeft;
-        int deltaRight;
+    // struct to store motor values and targets
+    typedef struct __attribute__((packed)) {
+        uint8_t targetRightValue;
+        uint8_t targetLeftValue;
+        uint8_t targetTrimValue;
+        uint8_t rightMotorValue;
+        uint8_t leftMotorValue;
+        uint8_t trimMotorValue;
     } recv_message;
     
     // init esp_now protocol and register callback functions and peer mac address
