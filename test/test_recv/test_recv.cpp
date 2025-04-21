@@ -1,17 +1,7 @@
+#include <Arduino.h>
 #include "control_api.h"
 #include "esp_now_api.h"
-#include <Arduino.h>
-
-// #defines for PWM update interval and step size
-#define UPDATE_INTERVAL     (50) // (in milliseconds)
-#define LEFT_PWM_STEP_SIZE  (2)
-#define RIGHT_PWM_STEP_SIZE (2)
-#define TRIM_PWM_STEP_SIZE  (2)
-
-// #defines for motor pinout
-#define LEFT_MOTOR_PWM  (23)
-#define RIGHT_MOTOR_PWM (22)
-#define TRIM_MOTOR_PWM  (13)
+#include "global_settings.h"
 
 // user defined mac addresses
 // const uint8_t recv_address[MAC_ADDR_LEN] = {0xA0, 0xA3, 0xB3, 0x96, 0x6E, 0x40};
@@ -34,16 +24,19 @@ void IRAM_ATTR data_sent_cb(const uint8_t *mac_addr, esp_now_send_status_t statu
 
 // callback function for esp_now data reception
 void IRAM_ATTR data_receive_cb(const uint8_t *mac_addr, const uint8_t *data, int data_len) {
-    // store data into recv_message struct derived from EspNowRecv class 
+    // store data into controller_message struct derived from EspNowController class 
     static DRAM_ATTR EspNowController::controller_message control_data = {0};
 
-    // print out data from the controller for debug purposes
     memcpy(&control_data, data, sizeof(control_data));
+
+    // print out data from the controller for debug purposes
+    #if DEBUG_CONTROLLER_DATA
     Serial.printf("DATA LEN (BYTES): %d \n", data_len);
     Serial.printf("PACKET RECEIVED:  \n");
     Serial.printf("%d\n", control_data.left_pwm);
     Serial.printf("%d\n", control_data.right_pwm);
     Serial.printf("%d\n", control_data.trim_pwm);
+    #endif
 
     // update the pwm values for the left and right wheels
     target_left_pwm  = control_data.left_pwm;
@@ -71,7 +64,7 @@ void loop(void) {
     int16_t actual_trim_pwm  = 0;
 
     while(1) {
-        if(millis() - start_time >= UPDATE_INTERVAL) {
+        if(millis() - start_time >= RECV_UPDATE_INTERVAL) {
 
             // adjust the left PWM value
             if(actual_left_pwm < target_left_pwm) actual_left_pwm += LEFT_PWM_STEP_SIZE;

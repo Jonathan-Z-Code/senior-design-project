@@ -1,20 +1,7 @@
 #include <Arduino.h>
 #include "unity.h"
+#include "global_settings.h"
 #include "esp_now_api.h"
-
-// interval to send user inputs to the car (in milliseconds)
-#define UPDATE_INTERVAL (150) 
-
-#define SPEED_PIN (32)
-#define OFFSET_PIN (33)
-#define JOYSTICK_DEADZONE (25)
-
-#define TRIM_MOTOR_PIN (25)
-#define TRIM_MOTOR_READ_PERIOD (50)
-#define TRIM_MOTOR_PWM_STEP_SIZE (5)
-
-// variable to store trim_pwm
-volatile int16_t trim_pwm = 0;
 
 // mac addr for senior design car: a0:a3:b3:96:78:28
 const uint8_t car_mac_addr[6] = {0xA0, 0xA3, 0xB3, 0x96, 0x78, 0x28};
@@ -69,11 +56,12 @@ void loop(void) {
     uint8_t l_val = 0;
     uint8_t r_val = 0;
     uint8_t speed_result = 0;
+    int16_t trim_pwm = 0;   // variable to store trim_pwm
     float kp = 0.9f;
     unsigned int curr_time = millis();
 
     while(1) {
-        if(millis() - curr_time >= UPDATE_INTERVAL) {
+        if(millis() - curr_time >= CONTROLLER_UPDATE_INTERVAL) {
             // variables to keep track of raw ADC readings
             analogReadResolution(8);
             uint8_t joystick_result  = analogRead(SPEED_PIN);
@@ -121,10 +109,12 @@ void loop(void) {
             // assign values to the control data struct
             controller.control_data->trim_pwm = (uint8_t)trim_pwm;
 
+            #if DEBUG_CONTROLLER_DATA
             // DEBUG: print out the trim_pwm variable to check
             Serial.printf("Final TRIM_PWM: %d \n", controller.control_data->trim_pwm);
             Serial.printf("ADC values: JOYSTICK: %u, LINEAR: %u \n", joystick_result, linear_result);
             Serial.printf("Final PWM values: L: %d, R: %d \n", controller.control_data->left_pwm, controller.control_data->right_pwm);
+            #endif
 
             controller.send(); // send controller values to the ESPNOW receiver
             
